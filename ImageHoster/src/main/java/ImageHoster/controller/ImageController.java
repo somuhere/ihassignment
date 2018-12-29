@@ -45,11 +45,12 @@ public class ImageController {
     //Also now you need to add the tags of an image in the Model type object
     //Here a list of tags is added in the Model type object
     //this list is then sent to 'images/image.html' file and the tags are displayed
-    @RequestMapping("/images/{id}/{title}")
-    public String showImage(@PathVariable("title") String title, @PathVariable("id") Integer id,Model model) {
-        Image image = imageService.getImageById(id);
+    @RequestMapping("/images/{imageId}/{title}")
+    public String showImage(@PathVariable("imageId") int id, Model model) {
+        Image image = imageService.getImage(id);
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
+        model.addAttribute("comments", image.getComments());  //to display all the comments related to the image selected
         return "images/image";
     }
 
@@ -99,11 +100,14 @@ public class ImageController {
         boolean authorizedUser = checkUserAuthorization(currentUser, imgOwnerUser);
         String tags = convertTagsToString(image.getTags());
         model.addAttribute("image", image);
-        model.addAttribute("tags", tags);
+
         if(authorizedUser) {
-           return "images/edit";
+            model.addAttribute("tags", tags);
+            return "images/edit";
         }
         else {
+            model.addAttribute("tags", image.getTags());
+            model.addAttribute("comments", image.getComments());
             String error = "Only the owner of the image can edit the image";
             model.addAttribute("editError", error);
             return "images/image";
@@ -142,7 +146,7 @@ public class ImageController {
         updatedImage.setDate(new Date());
 
         imageService.updateImage(updatedImage);
-        return "redirect:/images/" + updatedImage.getTitle();
+        return "redirect:/images/" + updatedImage.getId() + "/" +updatedImage.getTitle();
     }
 
 
@@ -163,7 +167,8 @@ public class ImageController {
             String error = "Only the owner of the image can delete the image";
             String tags = convertTagsToString(image.getTags());
             model.addAttribute("image", image);
-            model.addAttribute("tags", tags);
+            model.addAttribute("tags", image.getTags());
+            model.addAttribute("comments", image.getComments());
             model.addAttribute("deleteError", error);
             return "images/image";
         }
@@ -220,6 +225,7 @@ public class ImageController {
         return tagString.toString();
     }
 
+    //This method checks whether the current user is the owner of the image he is trying to delete or edit
     private boolean checkUserAuthorization(User currUser, User imgOwn) {
         if(currUser.getId() == imgOwn.getId()) {
             return true;

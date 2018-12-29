@@ -44,7 +44,7 @@ public class UserController {
 
         if(user.getPassword().matches(".*[A-Za-z].*") && user.getPassword().matches(".*[0-9].*") && user.getPassword().matches(".*[^A-Za-z0-9].*")) {
             userService.registerUser(user);
-            return "redirect:/users/login";
+            return "users/login";
         }
         else {
             String error = "Password must contain atleast 1 alphabet, 1 number & 1 special character";
